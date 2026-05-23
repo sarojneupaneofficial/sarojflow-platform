@@ -70,18 +70,18 @@ Traffic Camera / Sensor (12 cameras)
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Ingestion | Apache Kafka 7.5, Confluent Platform |
+| Layer             | Technology                                     |
+| ----------------- | ---------------------------------------------- |
+| Ingestion         | Apache Kafka 7.5, Confluent Platform           |
 | Stream Processing | Apache Spark 3.5, PySpark Structured Streaming |
-| Storage | Delta Lake 3.0, Parquet, PostgreSQL 15 |
-| Orchestration | Apache Airflow 2.8 |
-| AI / ML | scikit-learn IsolationForest, joblib |
-| API | FastAPI 0.109, Uvicorn, Pydantic v2 |
-| Dashboard | HTML/CSS/JS, Chart.js |
-| Containerisation | Docker, Docker Compose |
-| Schema Registry | Confluent Schema Registry |
-| Kafka UI | Provectus Kafka UI |
+| Storage           | Delta Lake 3.0, Parquet, PostgreSQL 15         |
+| Orchestration     | Apache Airflow 2.8                             |
+| AI / ML           | scikit-learn IsolationForest, joblib           |
+| API               | FastAPI 0.109, Uvicorn, Pydantic v2            |
+| Dashboard         | HTML/CSS/JS, Chart.js                          |
+| Containerisation  | Docker, Docker Compose                         |
+| Schema Registry   | Confluent Schema Registry                      |
+| Kafka UI          | Provectus Kafka UI                             |
 
 ---
 
@@ -153,6 +153,7 @@ docker compose up -d
 ```
 
 This starts (in order):
+
 1. Zookeeper + Kafka + Schema Registry
 2. Kafka topic initialiser (creates 4 topics)
 3. PostgreSQL (runs init_db.sql)
@@ -174,13 +175,13 @@ All services should show `healthy` or `running`.
 
 ### 4. Open the interfaces
 
-| Interface | URL | Credentials |
-|---|---|---|
-| **Dashboard** | http://localhost:3000 | — |
-| **FastAPI docs** | http://localhost:8000/docs | — |
-| **Kafka UI** | http://localhost:8080 | — |
-| **Airflow** | http://localhost:8082 | admin / admin |
-| **Spark UI** | http://localhost:4040 | — |
+| Interface        | URL                        | Credentials   |
+| ---------------- | -------------------------- | ------------- |
+| **Dashboard**    | http://localhost:3000      | —             |
+| **FastAPI docs** | http://localhost:8000/docs | —             |
+| **Kafka UI**     | http://localhost:8080      | —             |
+| **Airflow**      | http://localhost:8082      | admin / admin |
+| **Spark UI**     | http://localhost:4040      | —             |
 
 ### 5. Run anomaly detection manually
 
@@ -232,20 +233,20 @@ Every camera event:
 
 ```json
 {
-  "event_id":         "uuid",
-  "camera_id":        "CAM_04",
-  "timestamp":        "2025-01-15T09:14:22Z",
-  "location":         "Pearson Airport Rd",
-  "latitude":         43.6777,
-  "longitude":        -79.6248,
-  "vehicle_count":    441,
-  "average_speed":    22.3,
+  "event_id": "uuid",
+  "camera_id": "CAM_04",
+  "timestamp": "2025-01-15T09:14:22Z",
+  "location": "Pearson Airport Rd",
+  "latitude": 43.6777,
+  "longitude": -79.6248,
+  "vehicle_count": 441,
+  "average_speed": 22.3,
   "congestion_level": "HIGH",
   "congestion_score": 81.4,
   "accident_detected": false,
   "pedestrian_count": 12,
   "heavy_vehicle_pct": 18.2,
-  "schema_version":   "1.0"
+  "schema_version": "1.0"
 }
 ```
 
@@ -253,11 +254,11 @@ Every camera event:
 
 ## Delta Lake Zones
 
-| Zone | Path | Format | Partitioning |
-|---|---|---|---|
-| Raw | `data/delta/raw/` | Parquet | none |
-| Clean | `data/delta/clean/` | Delta | `event_date / event_hour` |
-| Analytics | `data/delta/analytics/` | Delta | `window_start` |
+| Zone      | Path                    | Format  | Partitioning              |
+| --------- | ----------------------- | ------- | ------------------------- |
+| Raw       | `data/delta/raw/`       | Parquet | none                      |
+| Clean     | `data/delta/clean/`     | Delta   | `event_date / event_hour` |
+| Analytics | `data/delta/analytics/` | Delta   | `window_start`            |
 
 ---
 
@@ -266,12 +267,14 @@ Every camera event:
 Uses **scikit-learn IsolationForest** trained on 48h rolling window.
 
 Alert types:
+
 - `TRAFFIC_SPIKE` — vehicle count ≥ 200% above per-camera baseline
 - `ACCIDENT` — `accident_detected=true` + speed < 10 km/h
 - `LOW_SPEED` — average speed < 10 km/h
 - `UNUSUAL_COUNT` — anomaly score ≥ 0.85
 
 Alerts written to:
+
 - Kafka topic `traffic.anomalies`
 - Kafka topic `traffic.alerts`
 - PostgreSQL `anomaly_alerts` table
@@ -291,12 +294,20 @@ Alerts written to:
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|---|---|---|
-| `KAFKA_BOOTSTRAP_SERVERS` | `localhost:9092` | Kafka broker address |
-| `EVENTS_PER_SECOND` | `10` | Producer throughput |
-| `NUM_CAMERAS` | `12` | Simulated cameras |
-| `POSTGRES_PASSWORD` | `sarojflow123` | DB password |
-| `ANOMALY_THRESHOLD` | `0.85` | IsolationForest cutoff |
-| `CONGESTION_SPIKE_PCT` | `200` | % above baseline for spike alert |
-| `DELTA_LAKE_PATH` | `./data/delta` | Delta Lake root path |
+| Variable                  | Default          | Description                      |
+| ------------------------- | ---------------- | -------------------------------- |
+| `KAFKA_BOOTSTRAP_SERVERS` | `localhost:9092` | Kafka broker address             |
+| `EVENTS_PER_SECOND`       | `10`             | Producer throughput              |
+| `NUM_CAMERAS`             | `12`             | Simulated cameras                |
+| `POSTGRES_PASSWORD`       | `sarojflow123`   | DB password                      |
+| `ANOMALY_THRESHOLD`       | `0.85`           | IsolationForest cutoff           |
+| `CONGESTION_SPIKE_PCT`    | `200`            | % above baseline for spike alert |
+| `DELTA_LAKE_PATH`         | `./data/delta`   | Delta Lake root path             |
+
+=======
+
+# sarojflow-platform
+
+Distributed Real-Time Smart City Intelligence Platform using Kafka, PySpark, Airflow, Delta Lake, and AWS.
+
+> > > > > > > 138cf8b16d1f708a3dbeb1ec22faf21b6229918f
