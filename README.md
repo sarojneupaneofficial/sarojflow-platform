@@ -181,35 +181,35 @@ Open http://localhost:8082 → DAGs → `sarojflow_daily_aggregation` → Trigge
 
 ### 7. Query the API
 
-```bash
 # Live camera metrics
+
 curl http://localhost:8000/v1/metrics/live | python -m json.tool
 
 # Platform summary KPIs
+
 curl http://localhost:8000/v1/metrics/summary | python -m json.tool
 
 # Recent anomaly alerts
+
 curl http://localhost:8000/v1/alerts?severity=CRITICAL | python -m json.tool
 
 # Pipeline health
+
 curl http://localhost:8000/v1/pipeline/health | python -m json.tool
-```
 
 ### 8. Run producer standalone (outside Docker)
 
-```bash
 python -m venv .venv && source .venv/bin/activate
 pip install kafka-python pydantic loguru click python-dotenv
 python -m producer.traffic_producer --cameras 12 --rate 10
-```
 
 ### 9. Stop
 
-```bash
 docker compose down
+
 # To also wipe volumes:
+
 docker compose down -v
-```
 
 ---
 
