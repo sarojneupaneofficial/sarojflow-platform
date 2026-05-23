@@ -6,63 +6,76 @@
 
 ## Architecture
 
-Traffic Camera / Sensor (12 cameras)
+12 Traffic Cameras
 │
 ▼
-Python Producer (traffic_producer.py)
-• Simulates realistic rush-hour patterns
-• Injects anomalies (spikes, accidents)
+Python Program
+(Sends fake/live traffic data)
 │
 ▼
-Kafka (4 topics)
-• traffic.raw.events ← all raw JSON events
-• traffic.clean.events ← validated events
-• traffic.anomalies ← anomaly payloads
-• traffic.alerts ← operator alerts
+Kafka
+(Stores and streams traffic events)
+│
+├── Raw traffic data
+├── Clean validated data
+├── AI anomaly events
+└── Alert messages
 │
 ▼
-Spark Structured Streaming (streaming_job.py)
-• JSON parsing + schema validation
-• Bad record filtering
-• Congestion score enrichment
-• 5-minute windowed aggregation
+Spark Streaming
+(Processes live traffic data)
 │
-├──── Raw Zone → data/delta/raw/ (Parquet, append)
-├──── Clean Zone → data/delta/clean/ (Delta, partitioned)
-└──── Analytics → data/delta/analytics/ (Delta, windowed)
+├── Cleans bad records
+├── Calculates congestion
+├── Detects unusual traffic
+└── Creates live analytics
 │
 ▼
-Airflow DAGs (5 scheduled)
-• daily_aggregation ← DQ checks + summaries
-• model_retraining ← re-fit Isolation Forest
-• delta_compaction ← OPTIMIZE + VACUUM
-• data_quality_check ← Z-score gate
-• report_generation ← daily report
+Data Storage
+(Saves processed data)
+│
+├── Raw data
+├── Clean data
+└── Analytics data
 │
 ▼
-PostgreSQL (analytics store)
-• clean_events
-• anomaly_alerts
-• daily_camera_summary
-• pipeline_health_log
+Airflow
+(Automates scheduled jobs)
+│
+├── Daily summaries
+├── AI model retraining
+├── Data cleanup
+├── Data quality checks
+└── Report generation
 │
 ▼
-FastAPI (api/main.py)
-• GET /v1/metrics/live
-• GET /v1/metrics/summary
-• GET /v1/alerts
-• GET /v1/analytics/hourly
-• GET /v1/pipeline/health
-• POST /v1/alerts/{id}/ack
+PostgreSQL Database
+(Stores analytics results)
+│
+├── Traffic events
+├── Alert records
+├── Camera summaries
+└── Pipeline logs
 │
 ▼
-Dashboard (dashboard/index.html)
-• Live vehicle count chart
-• Congestion zone scores
-• Camera network table
-• AI anomaly alert panel
-• Pipeline health monitor
-• Event stream log
+FastAPI Backend
+(Provides APIs for dashboard)
+│
+├── Live metrics
+├── Traffic summaries
+├── Alert APIs
+├── Hourly analytics
+└── Pipeline health APIs
+│
+▼
+Web Dashboard
+(Displays real-time traffic intelligence)
+│
+├── Vehicle count charts
+├── Congestion monitoring
+├── Camera status table
+├── AI anomaly alerts
+└── Pipeline health monitor
 
 ---
 
