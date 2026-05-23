@@ -306,8 +306,7 @@ Alerts written to:
 
 =======
 
-# sarojflow-platform
+## Author
 
-Distributed Real-Time Smart City Intelligence Platform using Kafka, PySpark, Airflow, Delta Lake, and AWS.
-
-> > > > > > > 138cf8b16d1f708a3dbeb1ec22faf21b6229918f
+- Saroj Neupane
+- Computer Engineer
