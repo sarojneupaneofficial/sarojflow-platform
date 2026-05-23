@@ -6,65 +6,63 @@
 
 ## Architecture
 
-```
 Traffic Camera / Sensor (12 cameras)
-          │
-          ▼
- Python Producer (traffic_producer.py)
-   • Simulates realistic rush-hour patterns
-   • Injects anomalies (spikes, accidents)
-          │
-          ▼
- Kafka  (4 topics)
-   • traffic.raw.events      ← all raw JSON events
-   • traffic.clean.events    ← validated events
-   • traffic.anomalies       ← anomaly payloads
-   • traffic.alerts          ← operator alerts
-          │
-          ▼
- Spark Structured Streaming (streaming_job.py)
-   • JSON parsing + schema validation
-   • Bad record filtering
-   • Congestion score enrichment
-   • 5-minute windowed aggregation
-          │
-          ├──── Raw Zone   →  data/delta/raw/        (Parquet, append)
-          ├──── Clean Zone →  data/delta/clean/       (Delta, partitioned)
-          └──── Analytics  →  data/delta/analytics/   (Delta, windowed)
-          │
-          ▼
- Airflow DAGs (5 scheduled)
-   • daily_aggregation       ← DQ checks + summaries
-   • model_retraining        ← re-fit Isolation Forest
-   • delta_compaction        ← OPTIMIZE + VACUUM
-   • data_quality_check      ← Z-score gate
-   • report_generation       ← daily report
-          │
-          ▼
- PostgreSQL (analytics store)
-   • clean_events
-   • anomaly_alerts
-   • daily_camera_summary
-   • pipeline_health_log
-          │
-          ▼
- FastAPI (api/main.py)
-   • GET /v1/metrics/live
-   • GET /v1/metrics/summary
-   • GET /v1/alerts
-   • GET /v1/analytics/hourly
-   • GET /v1/pipeline/health
-   • POST /v1/alerts/{id}/ack
-          │
-          ▼
- Dashboard (dashboard/index.html)
-   • Live vehicle count chart
-   • Congestion zone scores
-   • Camera network table
-   • AI anomaly alert panel
-   • Pipeline health monitor
-   • Event stream log
-```
+│
+▼
+Python Producer (traffic_producer.py)
+• Simulates realistic rush-hour patterns
+• Injects anomalies (spikes, accidents)
+│
+▼
+Kafka (4 topics)
+• traffic.raw.events ← all raw JSON events
+• traffic.clean.events ← validated events
+• traffic.anomalies ← anomaly payloads
+• traffic.alerts ← operator alerts
+│
+▼
+Spark Structured Streaming (streaming_job.py)
+• JSON parsing + schema validation
+• Bad record filtering
+• Congestion score enrichment
+• 5-minute windowed aggregation
+│
+├──── Raw Zone → data/delta/raw/ (Parquet, append)
+├──── Clean Zone → data/delta/clean/ (Delta, partitioned)
+└──── Analytics → data/delta/analytics/ (Delta, windowed)
+│
+▼
+Airflow DAGs (5 scheduled)
+• daily_aggregation ← DQ checks + summaries
+• model_retraining ← re-fit Isolation Forest
+• delta_compaction ← OPTIMIZE + VACUUM
+• data_quality_check ← Z-score gate
+• report_generation ← daily report
+│
+▼
+PostgreSQL (analytics store)
+• clean_events
+• anomaly_alerts
+• daily_camera_summary
+• pipeline_health_log
+│
+▼
+FastAPI (api/main.py)
+• GET /v1/metrics/live
+• GET /v1/metrics/summary
+• GET /v1/alerts
+• GET /v1/analytics/hourly
+• GET /v1/pipeline/health
+• POST /v1/alerts/{id}/ack
+│
+▼
+Dashboard (dashboard/index.html)
+• Live vehicle count chart
+• Congestion zone scores
+• Camera network table
+• AI anomaly alert panel
+• Pipeline health monitor
+• Event stream log
 
 ---
 
@@ -87,45 +85,43 @@ Traffic Camera / Sensor (12 cameras)
 
 ## Project Structure
 
-```
 sarojflow/
-├── docker-compose.yml          ← full stack (Kafka, Spark, Airflow, PG, API, Dashboard)
+├── docker-compose.yml ← full stack (Kafka, Spark, Airflow, PG, API, Dashboard)
 ├── requirements.txt
 ├── .env.example
 │
 ├── producer/
-│   ├── Dockerfile
-│   ├── __init__.py
-│   ├── schema.py               ← Pydantic TrafficEvent + AnomalyAlert models
-│   └── traffic_producer.py     ← Kafka producer, 12-camera simulation
+│ ├── Dockerfile
+│ ├── **init**.py
+│ ├── schema.py ← Pydantic TrafficEvent + AnomalyAlert models
+│ └── traffic_producer.py ← Kafka producer, 12-camera simulation
 │
 ├── spark/
-│   ├── Dockerfile
-│   ├── streaming_job.py        ← Spark Structured Streaming pipeline
-│   └── anomaly_detection.py   ← IsolationForest scoring + alert emission
+│ ├── Dockerfile
+│ ├── streaming_job.py ← Spark Structured Streaming pipeline
+│ └── anomaly_detection.py ← IsolationForest scoring + alert emission
 │
 ├── airflow/
-│   └── dags/
-│       └── daily_aggregation.py ← DQ, aggregation, retraining, compaction DAG
+│ └── dags/
+│ └── daily_aggregation.py ← DQ, aggregation, retraining, compaction DAG
 │
 ├── api/
-│   ├── Dockerfile
-│   └── main.py                 ← FastAPI gateway (6 endpoints)
+│ ├── Dockerfile
+│ └── main.py ← FastAPI gateway (6 endpoints)
 │
 ├── dashboard/
-│   └── index.html              ← live monitoring dashboard
+│ └── index.html ← live monitoring dashboard
 │
 ├── ml/
-│   └── models/                 ← trained model artifacts (gitignored)
+│ └── models/ ← trained model artifacts (gitignored)
 │
 ├── data/
-│   ├── raw/
-│   ├── clean/
-│   └── analytics/
+│ ├── raw/
+│ ├── clean/
+│ └── analytics/
 │
 └── scripts/
-    └── init_db.sql             ← Postgres schema + seed data
-```
+└── init_db.sql ← Postgres schema + seed data
 
 ---
 
@@ -139,37 +135,14 @@ sarojflow/
 
 ### 1. Clone and configure
 
-```bash
 git clone https://github.com/yourname/sarojflow.git
 cd sarojflow
 cp .env.example .env
-# Edit .env if you want to change passwords or settings
-```
-
-### 2. Start the full stack
-
-```bash
-docker compose up -d
-```
-
-This starts (in order):
-
-1. Zookeeper + Kafka + Schema Registry
-2. Kafka topic initialiser (creates 4 topics)
-3. PostgreSQL (runs init_db.sql)
-4. Traffic Producer
-5. Spark Streaming job
-6. FastAPI
-7. Airflow webserver + scheduler
-8. Dashboard (nginx)
-
-Wait ~60 seconds for all services to become healthy.
 
 ### 3. Verify everything is running
 
-```bash
+bash
 docker compose ps
-```
 
 All services should show `healthy` or `running`.
 
