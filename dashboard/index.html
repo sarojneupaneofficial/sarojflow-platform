@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SarojFlow — Smart City Data Platform</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--sky:#3B82F6;--sky-light:#EFF6FF;--sky-mid:#BFDBFE;--steel:#1E40AF;--navy:#0F172A;--charcoal:#1E293B;--slate:#475569;--muted:#94A3B8;--silver:#E2E8F0;--surface:#F8FAFC;--white:#FFFFFF;--success:#10B981;--warning:#F59E0B;--danger:#EF4444;--radius:10px}
+  body{font-family:'DM Sans',sans-serif;background:var(--surface);color:var(--charcoal);font-size:13px;line-height:1.5}
+  .topbar{background:var(--white);border-bottom:1px solid var(--silver);padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+  .logo{display:flex;align-items:center;gap:10px}
+  .logo-mark{width:28px;height:28px;background:var(--sky);border-radius:6px;display:flex;align-items:center;justify-content:center}
+  .logo-mark svg{width:16px;height:16px;fill:white}
+  .logo-name{font-size:15px;font-weight:600;color:var(--navy)}
+  .logo-tag{font-size:11px;color:var(--muted)}
+  .topbar-right{display:flex;align-items:center;gap:16px}
+  .status-pill{display:flex;align-items:center;gap:6px;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:20px;padding:4px 10px;font-size:11px;color:#065F46;font-weight:500}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--success);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .ts{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace}
+  .sidebar{width:200px;background:var(--white);border-right:1px solid var(--silver);height:calc(100vh - 52px);position:fixed;top:52px;left:0;padding:16px 0;display:flex;flex-direction:column}
+  .nav-section{padding:0 12px 8px;font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+  .nav-item{display:flex;align-items:center;gap:8px;padding:8px 14px;font-size:12.5px;color:var(--slate);cursor:pointer;margin:0 8px;border-radius:7px;transition:all .15s}
+  .nav-item:hover{background:var(--surface);color:var(--charcoal)}
+  .nav-item.active{background:var(--sky-light);color:var(--sky);font-weight:500}
+  .nav-icon{width:16px;height:16px;opacity:.7}
+  .nav-item.active .nav-icon{opacity:1}
+  .nav-badge{margin-left:auto;background:var(--danger);color:white;font-size:10px;font-weight:600;padding:1px 6px;border-radius:10px}
+  .nav-badge.blue{background:var(--sky-light);color:var(--sky);border:1px solid var(--sky-mid)}
+  .main{margin-left:200px;padding:20px 24px}
+  .page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px}
+  .page-title{font-size:18px;font-weight:600;color:var(--navy)}
+  .page-sub{font-size:12px;color:var(--muted);margin-top:2px}
+  .arch-row{display:flex;align-items:center;gap:6px}
+  .arch-node{padding:5px 10px;border-radius:6px;font-size:11px;font-weight:500}
+  .ingestion{background:#EFF6FF;color:#1E40AF;border:1px solid #BFDBFE}
+  .stream{background:#ECFDF5;color:#065F46;border:1px solid #A7F3D0}
+  .storage{background:#FFFBEB;color:#92400E;border:1px solid #FDE68A}
+  .serving{background:#FDF4FF;color:#6B21A8;border:1px solid #E9D5FF}
+  .kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:16px}
+  .kpi-card{background:var(--white);border:1px solid var(--silver);border-radius:var(--radius);padding:14px 16px;position:relative;overflow:hidden}
+  .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--sky);border-radius:var(--radius) var(--radius) 0 0}
+  .kpi-card.warn::before{background:var(--warning)}
+  .kpi-card.danger::before{background:var(--danger)}
+  .kpi-card.success::before{background:var(--success)}
+  .kpi-label{font-size:11px;color:var(--muted);font-weight:500;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+  .kpi-value{font-size:22px;font-weight:600;color:var(--navy);letter-spacing:-.5px;line-height:1}
+  .kpi-meta{font-size:11px;color:var(--muted);margin-top:4px}
+  .up{color:var(--success)} .down{color:var(--danger)}
+  .grid-3{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+  .grid-bottom{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+  .card{background:var(--white);border:1px solid var(--silver);border-radius:var(--radius);overflow:hidden}
+  .card-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--silver)}
+  .card-title{font-size:13px;font-weight:600;color:var(--navy)}
+  .card-sub{font-size:11px;color:var(--muted);margin-top:1px}
+  .card-body{padding:16px 18px}
+  .cam-table{width:100%;border-collapse:collapse}
+  .cam-table th{text-align:left;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding:0 0 8px;border-bottom:1px solid var(--silver)}
+  .cam-table td{padding:9px 0;border-bottom:1px solid #F1F5F9;vertical-align:middle;font-size:12px}
+  .cam-table tr:last-child td{border-bottom:none}
+  .cam-id{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;color:var(--steel)}
+  .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;text-transform:uppercase}
+  .bg{background:#ECFDF5;color:#065F46} .by{background:#FFFBEB;color:#92400E} .br{background:#FEF2F2;color:#991B1B} .bb{background:var(--sky-light);color:var(--steel)}
+  .speed-wrap{display:flex;align-items:center;gap:8px}
+  .speed-bar{height:4px;border-radius:2px;background:var(--silver);flex:1;overflow:hidden}
+  .speed-fill{height:100%;border-radius:2px}
+  .speed-val{font-size:11px;color:var(--slate);width:30px;text-align:right;font-family:'IBM Plex Mono',monospace}
+  .alert-list{display:flex;flex-direction:column;gap:8px}
+  .alert-item{display:flex;gap:10px;padding:10px 12px;border-radius:7px;border:1px solid;align-items:flex-start}
+  .ac{background:#FEF2F2;border-color:#FECACA} .aw{background:#FFFBEB;border-color:#FDE68A} .ai{background:var(--sky-light);border-color:var(--sky-mid)}
+  .alert-icon{width:14px;height:14px;flex-shrink:0;margin-top:1px}
+  .alert-body{flex:1}
+  .alert-title{font-size:12px;font-weight:500;color:var(--navy)}
+  .alert-msg{font-size:11px;color:var(--slate);margin-top:2px}
+  .alert-time{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;white-space:nowrap}
+  .pipe-steps{display:flex;flex-direction:column;gap:6px}
+  .pipe-step{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface);border-radius:7px;border:1px solid var(--silver)}
+  .sdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .sdot.ok{background:var(--success)} .sdot.warn{background:var(--warning);animation:pulse 2s infinite} .sdot.run{background:var(--sky);animation:pulse 1.5s infinite}
+  .sname{font-size:12px;font-weight:500;color:var(--charcoal);flex:1}
+  .smeta{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace}
+  .slat{font-size:11px;color:var(--slate);font-family:'IBM Plex Mono',monospace;min-width:48px;text-align:right}
+  .mini-wrap{display:flex;align-items:flex-end;gap:3px;height:32px}
+  .mini-bar{flex:1;background:var(--sky-mid);border-radius:2px 2px 0 0;transition:height .5s}
+  .mini-bar.on{background:var(--sky)}
+  .elog{font-family:'IBM Plex Mono',monospace;font-size:11px;display:flex;flex-direction:column;gap:4px;max-height:140px;overflow:hidden}
+  .eline{display:flex;gap:8px}
+  .ets{color:var(--muted);flex-shrink:0} .ei{color:var(--sky)} .ew{color:var(--warning)} .em{color:var(--charcoal)}
+  .tput{font-size:28px;font-weight:600;color:var(--navy);letter-spacing:-.5px;font-family:'IBM Plex Mono',monospace}
+  .tag{display:inline-flex;padding:2px 7px;background:var(--surface);border:1px solid var(--silver);border-radius:4px;font-size:10px;color:var(--slate);font-weight:500}
+  .cong-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .clabel{font-size:11px;color:var(--slate);width:52px;text-align:right}
+  .ctrack{flex:1;height:6px;background:var(--silver);border-radius:3px;overflow:hidden}
+  .cfill{height:100%;border-radius:3px}
+  .cval{font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--slate);width:28px}
+  .sstat{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--silver)}
+  .sstat:last-child{border-bottom:none}
+  .slabel{font-size:11px;color:var(--muted)} .sval{font-size:12px;font-weight:500;color:var(--charcoal);font-family:'IBM Plex Mono',monospace}
+  .fbar{display:flex;align-items:center;gap:16px;padding:10px 18px;background:var(--surface);border-top:1px solid var(--silver)}
+  .fstat{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+  .fstat span{color:var(--charcoal);font-weight:500;font-family:'IBM Plex Mono',monospace}
+  .fsep{width:1px;height:12px;background:var(--silver)}
+  .ring{width:14px;height:14px;border:2px solid var(--sky-mid);border-top-color:var(--sky);border-radius:50%;animation:spin 1.5s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .scard{background:var(--surface);border:1px solid var(--silver);border-radius:7px;padding:8px 10px}
+  .scl{font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:600;letter-spacing:.05em}
+  .scv{font-size:13px;font-weight:600;color:var(--charcoal);font-family:'IBM Plex Mono',monospace;margin-top:4px}
+  .scs{font-size:10px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-mark"><svg viewBox="0 0 16 16"><path d="M2 8L8 2L14 8L8 14Z M6 8L8 6L10 8L8 10Z"/></svg></div>
+    <div><div class="logo-name">SarojFlow</div><div class="logo-tag">Smart City Data Platform</div></div>
+  </div>
+  <div class="topbar-right">
+    <div class="status-pill"><div class="dot"></div>All Systems Operational</div>
+    <div class="ring"></div>
+    <div class="ts" id="clock">—</div>
+  </div>
+</div>
+
+<div style="display:flex">
+<div class="sidebar">
+  <div style="padding:0 12px 10px">
+    <div class="nav-section">Platform</div>
+    <div class="nav-item active"><svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>Overview</div>
+    <div class="nav-item"><svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="7"/><path d="M7 4h2v5H7zm0 6h2v2H7z"/></svg>Live Events<span class="nav-badge">3</span></div>
+    <div class="nav-item"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="1,12 5,7 8,10 11,5 15,9"/></svg>Analytics</div>
+    <div class="nav-item"><svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><circle cx="5" cy="4" r="2"/><circle cx="11" cy="4" r="2"/><circle cx="8" cy="12" r="2"/><line x1="5" y1="6" x2="8" y2="10" stroke="currentColor"/><line x1="11" y1="6" x2="8" y2="10" stroke="currentColor"/></svg>Cameras<span class="nav-badge blue">12</span></div>
+  </div>
+  <div style="padding:0 12px 10px;margin-top:8px">
+    <div class="nav-section">Engineering</div>
+    <div class="nav-item"><svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="3" width="14" height="3" rx="1"/><rect x="1" y="9" width="14" height="3" rx="1"/></svg>Kafka Topics</div>
+    <div class="nav-item"><svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><polygon points="8,2 14,13 2,13"/></svg>Spark Jobs</div>
+    <div class="nav-item"><svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="2" width="12" height="12" rx="2"/><line x1="6" y1="6" x2="10" y2="6" stroke="white" stroke-width="1.5"/><line x1="6" y1="9" x2="10" y2="9" stroke="white" stroke-width="1.5"/></svg>Airflow DAGs</div>
+    <div class="nav-item"><svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1L3 4v8l5 3 5-3V4L8 1z"/></svg>Delta Lake</div>
+  </div>
+  <div style="padding:0 12px;margin-top:8px">
+    <div class="nav-section">AI / ML</div>
+    <div class="nav-item"><svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="7"/><path d="M5 8l2 2 4-4" stroke="white" stroke-width="1.5" fill="none"/></svg>Anomaly Detection<span class="nav-badge">!</span></div>
+    <div class="nav-item"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="2,12 5,7 8,10 10,4 14,8"/></svg>Model Registry</div>
+  </div>
+  <div style="margin-top:auto;padding:12px;border-top:1px solid var(--silver)">
+    <div style="font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace">v2.4.1 · us-east-1<br/><span style="color:var(--success);font-weight:500">● Cluster healthy</span></div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="page-header">
+    <div><div class="page-title">Platform Overview</div><div class="page-sub">Real-time traffic intelligence · 12 cameras · 4 Kafka topics</div></div>
+    <div class="arch-row">
+      <span class="arch-node ingestion">Kafka</span><span style="color:var(--muted);margin:0 2px">→</span>
+      <span class="arch-node stream">Spark</span><span style="color:var(--muted);margin:0 2px">→</span>
+      <span class="arch-node storage">Delta Lake</span><span style="color:var(--muted);margin:0 2px">→</span>
+      <span class="arch-node serving">FastAPI</span>
+    </div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card success"><div class="kpi-label">Events / sec</div><div class="kpi-value" id="kpi-eps">847</div><div class="kpi-meta"><span class="up">↑ 12%</span> vs last hour</div></div>
+    <div class="kpi-card"><div class="kpi-label">Active Cameras</div><div class="kpi-value">12/12</div><div class="kpi-meta"><span class="up">100%</span> uptime</div></div>
+    <div class="kpi-card warn"><div class="kpi-label">Avg Speed</div><div class="kpi-value" id="kpi-speed">38</div><div class="kpi-meta"><span class="down">↓ 8%</span> km/h avg</div></div>
+    <div class="kpi-card danger"><div class="kpi-label">Anomalies</div><div class="kpi-value">3</div><div class="kpi-meta">last 15 minutes</div></div>
+    <div class="kpi-card"><div class="kpi-label">Total Events</div><div class="kpi-value">2.4M</div><div class="kpi-meta">today</div></div>
+    <div class="kpi-card"><div class="kpi-label">Pipeline SLA</div><div class="kpi-value">99.8%</div><div class="kpi-meta"><span class="up">↑ 0.2%</span> this week</div></div>
+  </div>
+
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-header">
+        <div><div class="card-title">Vehicle Count — 24h</div><div class="card-sub">Aggregated across all cameras</div></div>
+        <div style="display:flex;gap:6px"><span class="tag">Live</span><span class="tag">traffic.raw.events</span></div>
+      </div>
+      <div class="card-body"><div style="position:relative;height:180px"><canvas id="trafficChart"></canvas></div></div>
+      <div class="fbar">
+        <div class="fstat">Peak: <span>08:00–09:00</span></div><div class="fsep"></div>
+        <div class="fstat">Kafka lag: <span>0.2s</span></div><div class="fsep"></div>
+        <div class="fstat">Partitions: <span>12</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div><div class="card-title">Congestion Zones</div><div class="card-sub">Current zone scores</div></div></div>
+      <div class="card-body">
+        <div style="margin-top:4px">
+          <div class="cong-row"><div class="clabel">Zone A</div><div class="ctrack"><div class="cfill" style="width:82%;background:#EF4444"></div></div><div class="cval">82</div></div>
+          <div class="cong-row"><div class="clabel">Zone B</div><div class="ctrack"><div class="cfill" style="width:61%;background:#F59E0B"></div></div><div class="cval">61</div></div>
+          <div class="cong-row"><div class="clabel">Zone C</div><div class="ctrack"><div class="cfill" style="width:38%;background:#3B82F6"></div></div><div class="cval">38</div></div>
+          <div class="cong-row"><div class="clabel">Zone D</div><div class="ctrack"><div class="cfill" style="width:22%;background:#10B981"></div></div><div class="cval">22</div></div>
+          <div class="cong-row"><div class="clabel">Zone E</div><div class="ctrack"><div class="cfill" style="width:45%;background:#3B82F6"></div></div><div class="cval">45</div></div>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap">
+          <span class="badge br">Critical: 1</span><span class="badge by">High: 1</span><span class="badge bb">Med: 2</span><span class="badge bg">Low: 1</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header"><div><div class="card-title">Camera Network</div><div class="card-sub">Live feed · sorted by vehicle count</div></div><span class="badge bb">Spark processed</span></div>
+      <div class="card-body" style="padding:0 18px 14px">
+        <table class="cam-table">
+          <thead><tr><th>Camera ID</th><th>Location</th><th>Vehicles</th><th>Speed km/h</th><th>Score</th><th>Status</th></tr></thead>
+          <tbody id="camTbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div><div class="card-title">AI Anomaly Alerts</div><div class="card-sub">Isolation Forest · last 30 min</div></div><span class="badge br">3 active</span></div>
+      <div class="card-body" style="overflow-y:auto;max-height:280px">
+        <div class="alert-list">
+          <div class="alert-item ac"><svg class="alert-icon" viewBox="0 0 14 14" fill="#DC2626"><path d="M7 0L0 14h14L7 0zm0 10a1 1 0 110 2 1 1 0 010-2zm-1-5h2v4H6V5z"/></svg><div class="alert-body"><div class="alert-title">Traffic spike · CAM_04</div><div class="alert-msg">Vehicle count 230% above baseline. Possible incident. Auto-alert dispatched.</div></div><div class="alert-time">09:14:22</div></div>
+          <div class="alert-item ac"><svg class="alert-icon" viewBox="0 0 14 14" fill="#DC2626"><path d="M7 0L0 14h14L7 0zm0 10a1 1 0 110 2 1 1 0 010-2zm-1-5h2v4H6V5z"/></svg><div class="alert-body"><div class="alert-title">Accident pattern · CAM_07</div><div class="alert-msg">Speed dropped to 4 km/h. accident_detected=true. Emergency services notified.</div></div><div class="alert-time">09:08:57</div></div>
+          <div class="alert-item aw"><svg class="alert-icon" viewBox="0 0 14 14" fill="#D97706"><circle cx="7" cy="7" r="7"/><path d="M6 4h2v4H6zm0 5h2v2H6z" fill="white"/></svg><div class="alert-body"><div class="alert-title">Speed anomaly · CAM_02</div><div class="alert-msg">Avg speed 6 km/h — 85% below baseline. Congestion score: 92/100.</div></div><div class="alert-time">08:59:11</div></div>
+          <div class="alert-item ai"><svg class="alert-icon" viewBox="0 0 14 14" fill="#2563EB"><circle cx="7" cy="7" r="7"/><path d="M6 6h2v5H6zm0-3h2v2H6z" fill="white"/></svg><div class="alert-body"><div class="alert-title">Model retrained · Airflow</div><div class="alert-msg">Isolation Forest updated 48h window. F1=0.94. DAG complete.</div></div><div class="alert-time">08:00:00</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-bottom">
+    <div class="card">
+      <div class="card-header"><div><div class="card-title">Pipeline Health</div><div class="card-sub">Component status</div></div><div class="dot" style="width:8px;height:8px"></div></div>
+      <div class="card-body">
+        <div class="pipe-steps">
+          <div class="pipe-step"><div class="sdot run"></div><div class="sname">Kafka Broker</div><div class="smeta">4 topics · 12 partitions</div><div class="slat">0.2s</div></div>
+          <div class="pipe-step"><div class="sdot run"></div><div class="sname">Spark Streaming</div><div class="smeta">3 executors · 8 cores</div><div class="slat">1.1s</div></div>
+          <div class="pipe-step"><div class="sdot ok"></div><div class="sname">Delta Lake Write</div><div class="smeta">raw / clean / analytics</div><div class="slat">0.8s</div></div>
+          <div class="pipe-step"><div class="sdot ok"></div><div class="sname">Airflow DAG</div><div class="smeta">daily_aggregation · ok</div><div class="slat">4m 12s</div></div>
+          <div class="pipe-step"><div class="sdot warn"></div><div class="sname">Anomaly Model</div><div class="smeta">inference · 3 triggers</div><div class="slat">180ms</div></div>
+          <div class="pipe-step"><div class="sdot ok"></div><div class="sname">FastAPI Gateway</div><div class="smeta">p99: 42ms · 200 OK</div><div class="slat">42ms</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div><div class="card-title">Throughput &amp; Latency</div><div class="card-sub">Events per second (live)</div></div></div>
+      <div class="card-body">
+        <div style="margin-bottom:14px"><div class="tput" id="tputNum">847</div><div style="font-size:11px;color:var(--muted);margin-top:2px">events/sec · Kafka ingestion</div></div>
+        <div class="mini-wrap" id="miniChart"></div>
+        <div style="height:1px;background:var(--silver);margin:14px 0"></div>
+        <div class="sstat"><div class="slabel">Spark batch interval</div><div class="sval">5s</div></div>
+        <div class="sstat"><div class="slabel">Records processed</div><div class="sval" id="recProc">2,401,834</div></div>
+        <div class="sstat"><div class="slabel">Bad records dropped</div><div class="sval">0.12%</div></div>
+        <div class="sstat"><div class="slabel">Kafka consumer lag</div><div class="sval">84ms</div></div>
+        <div class="sstat"><div class="slabel">Delta Lake ACID txns</div><div class="sval">14,208</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div><div class="card-title">Event Stream Log</div><div class="card-sub">Kafka → Spark raw events</div></div><span class="tag">traffic.raw.events</span></div>
+      <div class="card-body">
+        <div class="elog" id="eventLog"></div>
+        <div style="height:1px;background:var(--silver);margin:12px 0"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div class="scard"><div class="scl">Raw Zone</div><div class="scv">1.2 TB</div><div class="scs">Parquet · S3</div></div>
+          <div class="scard"><div class="scl">Clean Zone</div><div class="scv">892 GB</div><div class="scs">Delta · validated</div></div>
+          <div class="scard"><div class="scl">Analytics Zone</div><div class="scv">204 GB</div><div class="scs">Aggregated · Athena</div></div>
+          <div class="scard"><div class="scl">Airflow</div><div class="scv">5 DAGs</div><div class="scs" style="color:var(--success);font-weight:500">All running</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const cams=[
+  {id:'CAM_01',loc:'Main St / 5th Ave',   v:124,s:42,c:35,st:'ok'},
+  {id:'CAM_02',loc:'Highway 401 N',        v:312,s:6, c:92,st:'crit'},
+  {id:'CAM_03',loc:'Downtown Financial',   v:89, s:31,c:58,st:'warn'},
+  {id:'CAM_04',loc:'Airport Rd',           v:441,s:22,c:81,st:'crit'},
+  {id:'CAM_05',loc:'Bayview / Sheppard',   v:67, s:55,c:18,st:'ok'},
+  {id:'CAM_06',loc:'Union Station',        v:198,s:14,c:74,st:'warn'},
+  {id:'CAM_07',loc:'Lake Shore Blvd W',    v:11, s:4, c:97,st:'crit'},
+  {id:'CAM_08',loc:'Yonge & Eglinton',     v:145,s:38,c:45,st:'ok'},
+];
+document.getElementById('camTbody').innerHTML=cams.map(c=>{
+  const cc=c.c>75?'br':c.c>50?'by':'bb';
+  const sb=c.st==='ok'?'<span class="badge bg">Normal</span>':c.st==='warn'?'<span class="badge by">High</span>':'<span class="badge br">Critical</span>';
+  const sp=Math.min(100,(c.s/80)*100);
+  const sc=c.s<15?'#EF4444':c.s<30?'#F59E0B':'#3B82F6';
+  return`<tr><td><span class="cam-id">${c.id}</span></td><td style="color:var(--slate)">${c.loc}</td><td style="font-weight:500;color:var(--navy)">${c.v}</td><td><div class="speed-wrap"><div class="speed-bar"><div class="speed-fill" style="width:${sp}%;background:${sc}"></div></div><div class="speed-val">${c.s}</div></div></td><td><span class="badge ${cc}">${c.c}</span></td><td>${sb}</td></tr>`;
+}).join('');
+
+const hrs=Array.from({length:24},(_,i)=>`${String(i).padStart(2,'0')}:00`);
+const base=[180,120,90,80,110,260,580,1420,1680,1340,1100,980,1050,1020,940,1180,1480,1320,1090,860,720,560,420,280];
+new Chart(document.getElementById('trafficChart').getContext('2d'),{
+  type:'line',
+  data:{labels:hrs,datasets:[{data:base.map(v=>v+Math.floor(Math.random()*60-30)),borderColor:'#3B82F6',backgroundColor:'rgba(59,130,246,0.08)',borderWidth:1.5,pointRadius:0,fill:true,tension:0.4}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#0F172A',titleColor:'#94A3B8',bodyColor:'#F8FAFC',borderColor:'#1E293B',borderWidth:1,padding:8,displayColors:false,callbacks:{label:c=>`${c.parsed.y} vehicles`}}},scales:{x:{grid:{color:'rgba(148,163,184,0.12)'},ticks:{color:'#94A3B8',font:{size:10,family:'IBM Plex Mono'},maxTicksLimit:8},border:{display:false}},y:{grid:{color:'rgba(148,163,184,0.12)'},ticks:{color:'#94A3B8',font:{size:10,family:'IBM Plex Mono'}},border:{display:false},min:0}}}
+});
+
+const mc=document.getElementById('miniChart');
+let md=Array.from({length:20},()=>Math.floor(Math.random()*60+40));
+function renderMini(){const mx=Math.max(...md);mc.innerHTML=md.map((v,i)=>`<div class="mini-bar${i===md.length-1?' on':''}" style="height:${Math.round(v/mx*100)}%"></div>`).join('');}
+renderMini();
+
+const LOGS=[
+  {l:'INFO',m:'kafka.consumer offset committed · partition 3'},
+  {l:'INFO',m:'spark.batch completed · 4,218 records written'},
+  {l:'WARN',m:'anomaly detected · camera CAM_04 · score 0.94'},
+  {l:'INFO',m:'delta.write success · clean/ · ACID txn #14209'},
+  {l:'INFO',m:'schema validation passed · 0 bad records'},
+  {l:'INFO',m:'airflow.daily_agg DAG run complete · 4m 12s'},
+  {l:'WARN',m:'cam_07 · speed=4 km/h · congestion_score=97'},
+  {l:'INFO',m:'fastapi /v1/metrics · 200 OK · 34ms'},
+];
+let lp=0;
+function ts(){const d=new Date();return`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`}
+function addLog(){const el=document.getElementById('eventLog');const m=LOGS[lp++%LOGS.length];const d=document.createElement('div');d.className='eline';d.innerHTML=`<span class="ets">${ts()}</span><span class="${m.l==='WARN'?'ew':'ei'}">${m.l}</span><span class="em">${m.m}</span>`;el.insertBefore(d,el.firstChild);while(el.children.length>8)el.removeChild(el.lastChild);}
+for(let i=0;i<5;i++)addLog();
+
+function clock(){const d=new Date();document.getElementById('clock').textContent=`${d.toLocaleDateString('en-CA',{month:'short',day:'numeric'})} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')} EDT`;}
+clock();
+
+let tr=2401834;
+setInterval(()=>{
+  const eps=Math.floor(800+Math.random()*120);
+  document.getElementById('kpi-eps').textContent=eps;
+  document.getElementById('tputNum').textContent=eps;
+  document.getElementById('kpi-speed').textContent=Math.floor(34+Math.random()*10);
+  tr+=Math.floor(eps*3);
+  document.getElementById('recProc').textContent=tr.toLocaleString();
+  md.shift();md.push(Math.floor(60+Math.random()*40));renderMini();
+  clock();
+},2000);
+setInterval(addLog,3000);
+</script>
+</body>
+</html>

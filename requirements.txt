@@ -1,0 +1,40 @@
+# ─── SarojFlow Python Dependencies ─────────────────────────────────────────
+
+# Kafka
+kafka-python==2.0.2
+confluent-kafka==2.3.0
+
+# Spark & Delta Lake
+pyspark==3.5.0
+delta-spark==3.0.0
+
+# Data processing
+pandas==2.1.4
+numpy==1.26.2
+pyarrow==14.0.2
+
+# ML / Anomaly Detection
+scikit-learn==1.3.2
+joblib==1.3.2
+
+# API
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+pydantic==2.5.3
+httpx==0.26.0
+
+# Database
+psycopg2-binary==2.9.9
+sqlalchemy==2.0.25
+alembic==1.13.1
+
+# Airflow
+apache-airflow==2.8.0
+apache-airflow-providers-postgres==5.10.0
+
+# Utilities
+python-dotenv==1.0.0
+loguru==0.7.2
+tenacity==8.2.3
+rich==13.7.0
+click==8.1.7

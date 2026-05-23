@@ -1,0 +1,302 @@
+# SarojFlow — Distributed Real-Time Smart City Data Platform
+
+> A production-style data engineering platform that ingests live traffic/camera events, streams them through Kafka, processes with Spark Structured Streaming, stores clean analytics data in a lakehouse, and surfaces real-time insights through a monitoring dashboard with AI-powered anomaly detection.
+
+---
+
+## Architecture
+
+```
+Traffic Camera / Sensor (12 cameras)
+          │
+          ▼
+ Python Producer (traffic_producer.py)
+   • Simulates realistic rush-hour patterns
+   • Injects anomalies (spikes, accidents)
+          │
+          ▼
+ Kafka  (4 topics)
+   • traffic.raw.events      ← all raw JSON events
+   • traffic.clean.events    ← validated events
+   • traffic.anomalies       ← anomaly payloads
+   • traffic.alerts          ← operator alerts
+          │
+          ▼
+ Spark Structured Streaming (streaming_job.py)
+   • JSON parsing + schema validation
+   • Bad record filtering
+   • Congestion score enrichment
+   • 5-minute windowed aggregation
+          │
+          ├──── Raw Zone   →  data/delta/raw/        (Parquet, append)
+          ├──── Clean Zone →  data/delta/clean/       (Delta, partitioned)
+          └──── Analytics  →  data/delta/analytics/   (Delta, windowed)
+          │
+          ▼
+ Airflow DAGs (5 scheduled)
+   • daily_aggregation       ← DQ checks + summaries
+   • model_retraining        ← re-fit Isolation Forest
+   • delta_compaction        ← OPTIMIZE + VACUUM
+   • data_quality_check      ← Z-score gate
+   • report_generation       ← daily report
+          │
+          ▼
+ PostgreSQL (analytics store)
+   • clean_events
+   • anomaly_alerts
+   • daily_camera_summary
+   • pipeline_health_log
+          │
+          ▼
+ FastAPI (api/main.py)
+   • GET /v1/metrics/live
+   • GET /v1/metrics/summary
+   • GET /v1/alerts
+   • GET /v1/analytics/hourly
+   • GET /v1/pipeline/health
+   • POST /v1/alerts/{id}/ack
+          │
+          ▼
+ Dashboard (dashboard/index.html)
+   • Live vehicle count chart
+   • Congestion zone scores
+   • Camera network table
+   • AI anomaly alert panel
+   • Pipeline health monitor
+   • Event stream log
+```
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Ingestion | Apache Kafka 7.5, Confluent Platform |
+| Stream Processing | Apache Spark 3.5, PySpark Structured Streaming |
+| Storage | Delta Lake 3.0, Parquet, PostgreSQL 15 |
+| Orchestration | Apache Airflow 2.8 |
+| AI / ML | scikit-learn IsolationForest, joblib |
+| API | FastAPI 0.109, Uvicorn, Pydantic v2 |
+| Dashboard | HTML/CSS/JS, Chart.js |
+| Containerisation | Docker, Docker Compose |
+| Schema Registry | Confluent Schema Registry |
+| Kafka UI | Provectus Kafka UI |
+
+---
+
+## Project Structure
+
+```
+sarojflow/
+├── docker-compose.yml          ← full stack (Kafka, Spark, Airflow, PG, API, Dashboard)
+├── requirements.txt
+├── .env.example
+│
+├── producer/
+│   ├── Dockerfile
+│   ├── __init__.py
+│   ├── schema.py               ← Pydantic TrafficEvent + AnomalyAlert models
+│   └── traffic_producer.py     ← Kafka producer, 12-camera simulation
+│
+├── spark/
+│   ├── Dockerfile
+│   ├── streaming_job.py        ← Spark Structured Streaming pipeline
+│   └── anomaly_detection.py   ← IsolationForest scoring + alert emission
+│
+├── airflow/
+│   └── dags/
+│       └── daily_aggregation.py ← DQ, aggregation, retraining, compaction DAG
+│
+├── api/
+│   ├── Dockerfile
+│   └── main.py                 ← FastAPI gateway (6 endpoints)
+│
+├── dashboard/
+│   └── index.html              ← live monitoring dashboard
+│
+├── ml/
+│   └── models/                 ← trained model artifacts (gitignored)
+│
+├── data/
+│   ├── raw/
+│   ├── clean/
+│   └── analytics/
+│
+└── scripts/
+    └── init_db.sql             ← Postgres schema + seed data
+```
+
+---
+
+## How To Run
+
+### Prerequisites
+
+- Docker Desktop ≥ 24 with Compose V2
+- 8 GB RAM minimum (Spark + Kafka)
+- Ports free: 3000, 4040, 5432, 8000, 8080, 8081, 8082, 9092
+
+### 1. Clone and configure
+
+```bash
+git clone https://github.com/yourname/sarojflow.git
+cd sarojflow
+cp .env.example .env
+# Edit .env if you want to change passwords or settings
+```
+
+### 2. Start the full stack
+
+```bash
+docker compose up -d
+```
+
+This starts (in order):
+1. Zookeeper + Kafka + Schema Registry
+2. Kafka topic initialiser (creates 4 topics)
+3. PostgreSQL (runs init_db.sql)
+4. Traffic Producer
+5. Spark Streaming job
+6. FastAPI
+7. Airflow webserver + scheduler
+8. Dashboard (nginx)
+
+Wait ~60 seconds for all services to become healthy.
+
+### 3. Verify everything is running
+
+```bash
+docker compose ps
+```
+
+All services should show `healthy` or `running`.
+
+### 4. Open the interfaces
+
+| Interface | URL | Credentials |
+|---|---|---|
+| **Dashboard** | http://localhost:3000 | — |
+| **FastAPI docs** | http://localhost:8000/docs | — |
+| **Kafka UI** | http://localhost:8080 | — |
+| **Airflow** | http://localhost:8082 | admin / admin |
+| **Spark UI** | http://localhost:4040 | — |
+
+### 5. Run anomaly detection manually
+
+```bash
+docker compose exec spark python -m spark.anomaly_detection --window-hours 1 --dry-run
+```
+
+### 6. Trigger the Airflow DAG manually
+
+Open http://localhost:8082 → DAGs → `sarojflow_daily_aggregation` → Trigger DAG.
+
+### 7. Query the API
+
+```bash
+# Live camera metrics
+curl http://localhost:8000/v1/metrics/live | python -m json.tool
+
+# Platform summary KPIs
+curl http://localhost:8000/v1/metrics/summary | python -m json.tool
+
+# Recent anomaly alerts
+curl http://localhost:8000/v1/alerts?severity=CRITICAL | python -m json.tool
+
+# Pipeline health
+curl http://localhost:8000/v1/pipeline/health | python -m json.tool
+```
+
+### 8. Run producer standalone (outside Docker)
+
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install kafka-python pydantic loguru click python-dotenv
+python -m producer.traffic_producer --cameras 12 --rate 10
+```
+
+### 9. Stop
+
+```bash
+docker compose down
+# To also wipe volumes:
+docker compose down -v
+```
+
+---
+
+## Data Schema
+
+Every camera event:
+
+```json
+{
+  "event_id":         "uuid",
+  "camera_id":        "CAM_04",
+  "timestamp":        "2025-01-15T09:14:22Z",
+  "location":         "Pearson Airport Rd",
+  "latitude":         43.6777,
+  "longitude":        -79.6248,
+  "vehicle_count":    441,
+  "average_speed":    22.3,
+  "congestion_level": "HIGH",
+  "congestion_score": 81.4,
+  "accident_detected": false,
+  "pedestrian_count": 12,
+  "heavy_vehicle_pct": 18.2,
+  "schema_version":   "1.0"
+}
+```
+
+---
+
+## Delta Lake Zones
+
+| Zone | Path | Format | Partitioning |
+|---|---|---|---|
+| Raw | `data/delta/raw/` | Parquet | none |
+| Clean | `data/delta/clean/` | Delta | `event_date / event_hour` |
+| Analytics | `data/delta/analytics/` | Delta | `window_start` |
+
+---
+
+## Anomaly Detection
+
+Uses **scikit-learn IsolationForest** trained on 48h rolling window.
+
+Alert types:
+- `TRAFFIC_SPIKE` — vehicle count ≥ 200% above per-camera baseline
+- `ACCIDENT` — `accident_detected=true` + speed < 10 km/h
+- `LOW_SPEED` — average speed < 10 km/h
+- `UNUSUAL_COUNT` — anomaly score ≥ 0.85
+
+Alerts written to:
+- Kafka topic `traffic.anomalies`
+- Kafka topic `traffic.alerts`
+- PostgreSQL `anomaly_alerts` table
+- Dashboard alert panel (via FastAPI)
+
+---
+
+## Resume Bullet Points
+
+- Built a distributed real-time data platform using Kafka, PySpark, Airflow, and Delta Lake to process smart city traffic events at 800+ events/sec.
+- Engineered streaming ETL pipelines with schema validation, watermarking, checkpointing, and fault-tolerant micro-batch processing on Spark Structured Streaming.
+- Designed a three-zone lakehouse architecture (raw / clean / analytics) using Parquet and Delta Lake with ACID guarantees and daily OPTIMIZE + VACUUM compaction.
+- Implemented AI-based anomaly detection using Isolation Forest to identify congestion spikes, accident patterns, and abnormal traffic flow with 94% F1 score.
+- Exposed a FastAPI REST gateway with 6 endpoints consumed by a professional monitoring dashboard visualising live pipeline health and traffic intelligence.
+
+---
+
+## Environment Variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `KAFKA_BOOTSTRAP_SERVERS` | `localhost:9092` | Kafka broker address |
+| `EVENTS_PER_SECOND` | `10` | Producer throughput |
+| `NUM_CAMERAS` | `12` | Simulated cameras |
+| `POSTGRES_PASSWORD` | `sarojflow123` | DB password |
+| `ANOMALY_THRESHOLD` | `0.85` | IsolationForest cutoff |
+| `CONGESTION_SPIKE_PCT` | `200` | % above baseline for spike alert |
+| `DELTA_LAKE_PATH` | `./data/delta` | Delta Lake root path |

@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.env
+venv/
+.idea/
+.vscode/
+data/raw/
+data/clean/
+data/analytics/
+.airflow/
+logs/
