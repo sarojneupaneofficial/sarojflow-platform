@@ -1,6 +1,6 @@
 # SarojFlow — Distributed Real-Time Smart City Data Platform
 
-> SarojFlow is a real-time data engineering platform I built to simulate smart city traffic analytics using Kafka, PySpark, Airflow, and Delta Lake. The platform streams live traffic and camera events, processes and cleans data through Spark Structured Streaming, stores analytics-ready datasets in a lakehouse architecture, and displays real-time insights through monitoring dashboards with AI-based anomaly detection.
+> SarojFlow is a real-time data engineering project I built to simulate smart city traffic analytics using Kafka, PySpark, Airflow, and Delta Lake. It streams live traffic and camera data, processes and cleans it using Spark Structured Streaming, stores the processed data in a lakehouse setup, and shows real-time insights through dashboards with AI-based anomaly detection.
 
 ---
 
