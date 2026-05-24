@@ -266,18 +266,6 @@ Alerts written to:
 - PostgreSQL `anomaly_alerts` table
 - Dashboard alert panel (via FastAPI)
 
----
-
-## Resume Bullet Points
-
-- Built a distributed real-time data platform using Kafka, PySpark, Airflow, and Delta Lake to process smart city traffic events at 800+ events/sec.
-- Engineered streaming ETL pipelines with schema validation, watermarking, checkpointing, and fault-tolerant micro-batch processing on Spark Structured Streaming.
-- Designed a three-zone lakehouse architecture (raw / clean / analytics) using Parquet and Delta Lake with ACID guarantees and daily OPTIMIZE + VACUUM compaction.
-- Implemented AI-based anomaly detection using Isolation Forest to identify congestion spikes, accident patterns, and abnormal traffic flow with 94% F1 score.
-- Exposed a FastAPI REST gateway with 6 endpoints consumed by a professional monitoring dashboard visualising live pipeline health and traffic intelligence.
-
----
-
 ## Environment Variables
 
 | Variable                  | Default          | Description                      |
