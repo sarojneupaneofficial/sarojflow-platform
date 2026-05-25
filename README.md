@@ -207,10 +207,6 @@ python -m producer.traffic_producer --cameras 12 --rate 10
 
 docker compose down
 
-# To also wipe volumes:
-
-docker compose down -v
-
 ---
 
 ## Data Schema
