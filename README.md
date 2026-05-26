@@ -280,8 +280,9 @@ Alerts written to:
 
 This project is licensed under the MIT License - see the LICENSE file for details. This is subjected to COPYRIGHT under Saroj Neupane.
 
-## Author
+## Developer
 
 - Saroj Neupane
 - Data Engineer
 - Computer Engineer
+- AI Enthusiast
