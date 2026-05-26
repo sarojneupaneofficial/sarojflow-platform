@@ -4,7 +4,7 @@
 
 ---
 
-## Architecture
+## Architecture of the Project
 
 12 Traffic Cameras
 │
