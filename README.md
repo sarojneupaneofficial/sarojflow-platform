@@ -286,4 +286,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Data Engineer
 - Computer Engineer
 - AI Enthusiast
-- Cloud
+-
