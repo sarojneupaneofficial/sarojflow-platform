@@ -19,49 +19,6 @@
 | Schema Registry   | Confluent Schema Registry                      |
 | Kafka UI          | Provectus Kafka UI                             |
 
----
-
-## Project Structure
-
-sarojflow/
-├── docker-compose.yml ← full stack (Kafka, Spark, Airflow, PG, API, Dashboard)
-├── requirements.txt
-├── .env.example
-│
-├── producer/
-│ ├── Dockerfile
-│ ├── **init**.py
-│ ├── schema.py ← Pydantic TrafficEvent + AnomalyAlert models
-│ └── traffic_producer.py ← Kafka producer, 12-camera simulation
-│
-├── spark/
-│ ├── Dockerfile
-│ ├── streaming_job.py ← Spark Structured Streaming pipeline
-│ └── anomaly_detection.py ← IsolationForest scoring + alert emission
-│
-├── airflow/
-│ └── dags/
-│ └── daily_aggregation.py ← DQ, aggregation, retraining, compaction DAG
-│
-├── api/
-│ ├── Dockerfile
-│ └── main.py ← FastAPI gateway (6 endpoints)
-│
-├── dashboard/
-│ └── index.html ← live monitoring dashboard
-│
-├── ml/
-│ └── models/ ← trained model artifacts (gitignored)
-│
-├── data/
-│ ├── raw/
-│ ├── clean/
-│ └── analytics/
-│
-└── scripts/
-└── init_db.sql ← Postgres schema + seed data
-
----
 
 ## How To Run
 
