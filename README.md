@@ -1,84 +1,8 @@
 # SarojFlow — Distributed Real-Time Smart City Data Platform
 
-> SarojFlow is a real-time data engineering project I built to simulate smart city traffic analytics using Kafka, PySpark, Airflow, and Delta Lake. It streams live traffic and camera data, processes and cleans it using Spark Structured Streaming, stores the processed data in a lakehouse setup, and shows real-time insights through dashboards with AI-based anomaly detection.
+" SarojFlow is a real-time data engineering project I built to simulate smart city traffic analytics using Kafka, PySpark, Airflow, and Delta Lake. It streams live traffic and camera data, processes and cleans it using Spark Structured Streaming, stores the processed data in a lakehouse setup, and shows real-time insights through dashboards with AI-based anomaly detection.
 
----
 
-## Architecture of the Project
-
-12 Traffic Cameras
-│
-▼
-Python Program
-(Sends fake/live traffic data)
-│
-▼
-Kafka
-(Stores and streams traffic events)
-│
-├── Raw traffic data
-├── Clean validated data
-├── AI anomaly events
-└── Alert messages
-│
-▼
-Spark Streaming
-(Processes live traffic data)
-│
-├── Cleans bad records
-├── Calculates congestion
-├── Detects unusual traffic
-└── Creates live analytics
-│
-▼
-Data Storage
-(Saves processed data)
-│
-├── Raw data
-├── Clean data
-└── Analytics data
-│
-▼
-Airflow
-(Automates scheduled jobs)
-│
-├── Daily summaries
-├── AI model retraining
-├── Data cleanup
-├── Data quality checks
-└── Report generation
-│
-▼
-PostgreSQL Database
-(Stores analytics results)
-│
-├── Traffic events
-├── Alert records
-├── Camera summaries
-└── Pipeline logs
-│
-▼
-FastAPI Backend
-(Provides APIs for dashboard)
-│
-├── Live metrics
-├── Traffic summaries
-├── Alert APIs
-
-├── Hourly analytics
-└── Pipeline health APIs
-│
-▼
-Web Dashboard
-(Displays real-time traffic intelligence)
-│
-├── Vehicle count charts
-├── Congestion monitoring
-├── Camera status table
-├── AI anomaly alerts
-└── Pipeline health monitor
-
----
 
 ## Tech Stack
 
@@ -286,5 +210,3 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Saroj Neupane
 - Data Engineer
 - Computer Engineer
-- Ai Enthusiast
-- Cloud Architect
