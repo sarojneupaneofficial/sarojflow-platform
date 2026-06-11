@@ -158,5 +158,3 @@ Alerts written to:
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details. This is subjected to COPYRIGHT under Saroj Neupane.
-
-##
