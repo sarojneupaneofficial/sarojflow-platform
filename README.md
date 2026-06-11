@@ -2,8 +2,6 @@
 
 " SarojFlow is a real-time data engineering project I built to simulate smart city traffic analytics using Kafka, PySpark, Airflow, and Delta Lake. It streams live traffic and camera data, processes and cleans it using Spark Structured Streaming, stores the processed data in a lakehouse setup, and shows real-time insights through dashboards with AI-based anomaly detection.
 
-
-
 ## Tech Stack
 
 | Layer             | Technology                                     |
@@ -18,7 +16,6 @@
 | Containerisation  | Docker, Docker Compose                         |
 | Schema Registry   | Confluent Schema Registry                      |
 | Kafka UI          | Provectus Kafka UI                             |
-
 
 ## How To Run
 
@@ -166,4 +163,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - Saroj Neupane
 - Data Engineer
-- Computer Engineer
+- Ai Enthusiast
+- Cloud Architect
