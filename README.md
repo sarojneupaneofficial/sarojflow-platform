@@ -157,4 +157,4 @@ Alerts written to:
 
 ## License
 
-This project is licensed under the MIT License - see the L
+This project is licensed under the MIT License - see the
