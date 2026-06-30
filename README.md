@@ -157,4 +157,4 @@ Alerts written to:
 
 ## License
 
-This project is licensed under the MI
+This project is licensed under the M
