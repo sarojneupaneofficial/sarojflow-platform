@@ -156,5 +156,3 @@ Alerts written to:
 =======
 
 ## License
-
-Th
