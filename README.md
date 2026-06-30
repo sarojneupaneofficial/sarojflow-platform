@@ -157,4 +157,4 @@ Alerts written to:
 
 ## License
 
-This project is licensed
+This project is license
