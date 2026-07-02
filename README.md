@@ -162,4 +162,4 @@ This Project is subjected to MIT License and under the copyright of Saroj Neupan
 ## Developer
 
 - Saroj Neupane
-- Data Engine
+- Data Engi
