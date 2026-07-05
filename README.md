@@ -157,4 +157,4 @@ Alerts written to:
 
 ## License
 
-This Project is subjected to
+This Project is subjected
