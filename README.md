@@ -157,4 +157,4 @@ Alerts written to:
 
 ## License
 
-This Project is subjected to MIT License and
+This Project is subjected to MIT License a
