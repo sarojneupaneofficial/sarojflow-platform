@@ -1,22 +1,20 @@
-"""
-sarojflow.airflow.dags.daily_aggregation
-─────────────────────────────────────────
-Daily Airflow DAG that:
-  1. Runs data quality checks on yesterday's clean Delta data
-  2. Computes daily summaries per camera and writes to Postgres
-  3. Re-trains the anomaly detection model with latest data
-  4. Runs Z-score quality gate — fails DAG if >5% bad records
-  5. Compacts small Delta files (OPTIMIZE + VACUUM)
-  6. Generates a Slack/email summary report
 
 from __future__ import annotations
-
 import os
 from datetime import datetime, timedelta
-
 from airflow import DAG
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import BranchPythonOperator, PythonOperator
+sarojflow.airflow.dags.daily_aggregation
+─────────────────────────────────────────
+Daily Airflow DAG that:
+    1. Runs data quality checks on yesterday's clean Delta data
+    2. Computes daily summaries per camera and writes to Postgres
+    3. Re-trains the anomaly detection model with latest data
+    4. Runs Z-score quality gate — fails DAG if > 5 % bad records
+    5. Compacts small Delta files(OPTIMIZE + VACUUM)
+    6. Generates a Slack/email summary report
+
 
 # ─── Default Args ──────────────────────────────────────────────────────────────
 
@@ -32,9 +30,10 @@ DEFAULT_ARGS = {
 
 POSTGRES_CONN = os.getenv(
     "POSTGRES_URL", "postgresql://sarojflow:sarojflow123@postgres:5432/sarojflow")
-DELTA_BASE    = os.getenv("DELTA_LAKE_PATH", "/data/delta")
+DELTA_BASE = os.getenv("DELTA_LAKE_PATH", "/data/delta")
 
 # ─── Task Functions ────────────────────────────────────────────────────────────
+
 
 def data_quality_check(**context) -> str:
     """
@@ -45,11 +44,11 @@ def data_quality_check(**context) -> str:
     import pyarrow.dataset as ds
 
     ds_yesterday = context["ds"]                       # YYYY-MM-DD string
-    clean_path   = f"{DELTA_BASE}/clean"
+    clean_path = f"{DELTA_BASE}/clean"
 
     try:
         dataset = ds.dataset(clean_path, format="parquet")
-        table   = dataset.to_table(
+        table = dataset.to_table(
             filter=ds.field("event_date") == ds_yesterday
         )
         df = table.to_pandas()
@@ -63,11 +62,11 @@ def data_quality_check(**context) -> str:
             f"No data found for {ds_yesterday} — pipeline may be down.")
 
     # Quality gates
-    null_rate    = df[["camera_id", "vehicle_count",
-        "average_speed"]].isnull().mean().mean()
+    null_rate = df[["camera_id", "vehicle_count",
+                    "average_speed"]].isnull().mean().mean()
     out_of_range = ((df["vehicle_count"] < 0) | (
         df["vehicle_count"] > 2000)).mean()
-    dup_rate     = df.duplicated(subset=["event_id"]).mean()
+    dup_rate = df.duplicated(subset=["event_id"]).mean()
 
     context["task_instance"].xcom_push("quality_stats", {
         "date":        ds_yesterday,
@@ -97,14 +96,14 @@ def compute_daily_aggregations(**context):
                 "DELETE FROM daily_camera_summary WHERE summary_date = %s", (ds_yesterday,))
             cur.execute(
                 """
-                INSERT INTO daily_camera_summary(
+                INSERT INTO daily_camera_summary (
                     summary_date, camera_id, location,
                     total_events, avg_vehicle_count, max_vehicle_count,
                     avg_speed, min_speed, total_accidents,
                     avg_congestion_score, peak_hour, created_at
                 )
                 SELECT
-                    %s: : date AS summary_date,
+                    %s::date AS summary_date,
                     camera_id,
                     location,
                     COUNT(*)              AS total_events,
@@ -112,12 +111,12 @@ def compute_daily_aggregations(**context):
                     MAX(vehicle_count)    AS max_vehicle_count,
                     AVG(average_speed)    AS avg_speed,
                     MIN(average_speed)    AS min_speed,
-                    SUM(accident_detected: : int) AS total_accidents,
+                    SUM(accident_detected::int) AS total_accidents,
                     AVG(congestion_score) AS avg_congestion_score,
-                    MODE() WITHIN GROUP(ORDER BY event_hour) AS peak_hour,
+                    MODE() WITHIN GROUP (ORDER BY event_hour) AS peak_hour,
                     NOW()                 AS created_at
                 FROM clean_events
-                WHERE event_date = %s: : date
+                WHERE event_date = %s::date
                 GROUP BY camera_id, location
                 """,
                 (ds_yesterday, ds_yesterday),
@@ -130,7 +129,8 @@ def compute_daily_aggregations(**context):
 
 def retrain_anomaly_model(**context):
     """Trigger anomaly model retraining with 48h of data."""
-    import subprocess, sys
+    import subprocess
+    import sys
     result = subprocess.run(
         [sys.executable, "-m", "spark.anomaly_detection",
             "--window-hours", "48", "--retrain"],
@@ -165,7 +165,7 @@ def compact_delta_tables(**context):
 
 
 def send_daily_report(**context):
-    """Summarise stats and log the report(extend to email/Slack as needed)."""
+    """Summarise stats and log the report (extend to email/Slack as needed)."""
     import psycopg2
     import json
 
@@ -207,7 +207,8 @@ def send_daily_report(**context):
 
 def quality_fail_alert(**context):
     """Called when DQ gate fails — log and alert."""
-    stats = context["task_instance"].xcom_pull(task_ids="data_quality_check", key="quality_stats")
+    stats = context["task_instance"].xcom_pull(
+        task_ids="data_quality_check", key="quality_stats")
     print(f"DATA QUALITY FAILURE for {stats}. Manual review required.")
     raise ValueError(f"Quality gate failed: {stats}")
 
@@ -232,8 +233,9 @@ with DAG(
         python_callable=data_quality_check,
     )
 
-    quality_ok   = EmptyOperator(task_id="quality_pass")
-    quality_fail = PythonOperator(task_id="quality_fail", python_callable=quality_fail_alert)
+    quality_ok = EmptyOperator(task_id="quality_pass")
+    quality_fail = PythonOperator(
+        task_id="quality_fail", python_callable=quality_fail_alert)
 
     daily_agg = PythonOperator(
         task_id="compute_daily_aggregations",
@@ -255,7 +257,8 @@ with DAG(
         python_callable=send_daily_report,
     )
 
-    end = EmptyOperator(task_id="end", trigger_rule="none_failed_min_one_success")
+    end = EmptyOperator(
+        task_id="end", trigger_rule="none_failed_min_one_success")
 
     # DAG graph
     start >> dq_check >> [quality_ok, quality_fail]
