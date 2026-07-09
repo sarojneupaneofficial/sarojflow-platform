@@ -8,7 +8,6 @@ Daily Airflow DAG that:
   4. Runs Z-score quality gate — fails DAG if >5% bad records
   5. Compacts small Delta files (OPTIMIZE + VACUUM)
   6. Generates a Slack/email summary report
-"""
 
 from __future__ import annotations
 
@@ -31,7 +30,8 @@ DEFAULT_ARGS = {
     "execution_timeout": timedelta(hours=2),
 }
 
-POSTGRES_CONN = os.getenv("POSTGRES_URL", "postgresql://sarojflow:sarojflow123@postgres:5432/sarojflow")
+POSTGRES_CONN = os.getenv(
+    "POSTGRES_URL", "postgresql://sarojflow:sarojflow123@postgres:5432/sarojflow")
 DELTA_BASE    = os.getenv("DELTA_LAKE_PATH", "/data/delta")
 
 # ─── Task Functions ────────────────────────────────────────────────────────────
@@ -54,15 +54,19 @@ def data_quality_check(**context) -> str:
         )
         df = table.to_pandas()
     except Exception as exc:
-        raise RuntimeError(f"Failed to read clean zone for {ds_yesterday}: {exc}")
+        raise RuntimeError(
+            f"Failed to read clean zone for {ds_yesterday}: {exc}")
 
     total = len(df)
     if total == 0:
-        raise ValueError(f"No data found for {ds_yesterday} — pipeline may be down.")
+        raise ValueError(
+            f"No data found for {ds_yesterday} — pipeline may be down.")
 
     # Quality gates
-    null_rate    = df[["camera_id", "vehicle_count", "average_speed"]].isnull().mean().mean()
-    out_of_range = ((df["vehicle_count"] < 0) | (df["vehicle_count"] > 2000)).mean()
+    null_rate    = df[["camera_id", "vehicle_count",
+        "average_speed"]].isnull().mean().mean()
+    out_of_range = ((df["vehicle_count"] < 0) | (
+        df["vehicle_count"] > 2000)).mean()
     dup_rate     = df.duplicated(subset=["event_id"]).mean()
 
     context["task_instance"].xcom_push("quality_stats", {
@@ -74,7 +78,8 @@ def data_quality_check(**context) -> str:
     })
 
     bad_pct = (null_rate + out_of_range + dup_rate) / 3
-    print(f"DQ | total={total:,} null={null_rate:.2%} oor={out_of_range:.2%} dup={dup_rate:.2%}")
+    print(
+        f"DQ | total={total:,} null={null_rate:.2%} oor={out_of_range:.2%} dup={dup_rate:.2%}")
 
     return "quality_pass" if bad_pct < 0.05 else "quality_fail"
 
@@ -88,17 +93,18 @@ def compute_daily_aggregations(**context):
 
     try:
         with conn.cursor() as cur:
-            cur.execute("DELETE FROM daily_camera_summary WHERE summary_date = %s", (ds_yesterday,))
+            cur.execute(
+                "DELETE FROM daily_camera_summary WHERE summary_date = %s", (ds_yesterday,))
             cur.execute(
                 """
-                INSERT INTO daily_camera_summary (
+                INSERT INTO daily_camera_summary(
                     summary_date, camera_id, location,
                     total_events, avg_vehicle_count, max_vehicle_count,
                     avg_speed, min_speed, total_accidents,
                     avg_congestion_score, peak_hour, created_at
                 )
                 SELECT
-                    %s::date AS summary_date,
+                    %s: : date AS summary_date,
                     camera_id,
                     location,
                     COUNT(*)              AS total_events,
@@ -106,12 +112,12 @@ def compute_daily_aggregations(**context):
                     MAX(vehicle_count)    AS max_vehicle_count,
                     AVG(average_speed)    AS avg_speed,
                     MIN(average_speed)    AS min_speed,
-                    SUM(accident_detected::int) AS total_accidents,
+                    SUM(accident_detected: : int) AS total_accidents,
                     AVG(congestion_score) AS avg_congestion_score,
-                    MODE() WITHIN GROUP (ORDER BY event_hour) AS peak_hour,
+                    MODE() WITHIN GROUP(ORDER BY event_hour) AS peak_hour,
                     NOW()                 AS created_at
                 FROM clean_events
-                WHERE event_date = %s::date
+                WHERE event_date = %s: : date
                 GROUP BY camera_id, location
                 """,
                 (ds_yesterday, ds_yesterday),
@@ -126,7 +132,8 @@ def retrain_anomaly_model(**context):
     """Trigger anomaly model retraining with 48h of data."""
     import subprocess, sys
     result = subprocess.run(
-        [sys.executable, "-m", "spark.anomaly_detection", "--window-hours", "48", "--retrain"],
+        [sys.executable, "-m", "spark.anomaly_detection",
+            "--window-hours", "48", "--retrain"],
         capture_output=True, text=True,
     )
     print(result.stdout)
@@ -158,7 +165,7 @@ def compact_delta_tables(**context):
 
 
 def send_daily_report(**context):
-    """Summarise stats and log the report (extend to email/Slack as needed)."""
+    """Summarise stats and log the report(extend to email/Slack as needed)."""
     import psycopg2
     import json
 
