@@ -152,5 +152,3 @@ Alerts written to:
 | `ANOMALY_THRESHOLD`       | `0.85`           | IsolationForest cutoff           |
 | `CONGESTION_SPIKE_PCT`    | `200`            | % above baseline for spike alert |
 | `DELTA_LAKE_PATH`         | `./data/delta`   | Delta Lake root path             |
-
-w
